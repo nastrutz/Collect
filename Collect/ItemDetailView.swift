@@ -10,7 +10,7 @@ import SwiftUI
 
 struct ItemDetailView: View {
     @Environment(\.modelContext) private var modelContext
-    @State private var folders: [Folder] = []
+    let folders: [Folder]
     @Bindable var item: Item
     @State private var showingImagePicker = false
     @State private var selectedImage: UIImage?

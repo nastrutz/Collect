@@ -9,6 +9,14 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
+    enum DisplayMode: String, CaseIterable, Identifiable {
+        case nameOnly = "Text"
+        case nameAndImage = "Text + Image"
+        case imageOnly = "Image Grid"
+
+        var id: String { self.rawValue }
+    }
+
     @Environment(\.modelContext) private var modelContext
     @Query(filter: #Predicate<Item> { item in
         item.folder == nil
@@ -22,26 +30,78 @@ struct ContentView: View {
     @State private var newFolderName = ""
     @State private var selectedFolder: Folder?
     @State private var path = NavigationPath()
+    @State private var folderToDelete: Folder?
+    @State private var showingDeleteAlert = false
+    @State private var displayMode: DisplayMode = .nameAndImage
 
     var body: some View {
         NavigationStack(path: $path) {
             List {
                 Section(header: Text("Unfiled items")) {
-                    ForEach(items) { item in
-                        NavigationLink(value: item) {
-                            HStack {
-                                if let imageData = item.imageData, let uiImage = UIImage(data: imageData) {
-                                    Image(uiImage: uiImage)
-                                        .resizable()
-                                        .frame(width: 50, height: 50)
-                                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                                }
+                    switch displayMode {
+                    case .nameOnly:
+                        ForEach(items) { item in
+                            NavigationLink(value: item) {
                                 Text(item.name)
-                                    .font(.body)
+                            }
+                            .contextMenu {
+                                Button(role: .destructive) {
+                                    modelContext.delete(item)
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+
+                                Menu {
+                                    ForEach(folders) { folder in
+                                        Button(folder.name) {
+                                            item.folder = folder
+                                            modelContext.insert(item)
+                                        }
+                                    }
+                                } label: {
+                                    Label("Change Folder", systemImage: "folder")
+                                }
                             }
                         }
+                        .onDelete(perform: deleteItems)
+
+                    case .nameAndImage:
+                        ForEach(items) { item in
+                            NavigationLink(value: item) {
+                                HStack {
+                                    if let imageData = item.imageData, let uiImage = UIImage(data: imageData) {
+                                        Image(uiImage: uiImage)
+                                            .resizable()
+                                            .frame(width: 50, height: 50)
+                                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                                    }
+                                    Text(item.name)
+                                        .font(.body)
+                                }
+                            }
+                            .contextMenu {
+                                Menu {
+                                    ForEach(folders) { folder in
+                                        Button(folder.name) {
+                                            item.folder = folder
+                                            modelContext.insert(item)
+                                        }
+                                    }
+                                } label: {
+                                    Label("Change Folder", systemImage: "folder")
+                                }
+                                Button(role: .destructive) {
+                                    modelContext.delete(item)
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+                            }
+                        }
+                        .onDelete(perform: deleteItems)
+
+                    case .imageOnly:
+                        ItemGridView(items: items)
                     }
-                    .onDelete(perform: deleteItems)
                 }
 
                 Section(header: Text("Folders")) {
@@ -50,16 +110,36 @@ struct ContentView: View {
                             Text(folder.name)
                         }
                     }
+                    .onDelete { indexSet in
+                        if let index = indexSet.first {
+                            folderToDelete = folders[index]
+                            showingDeleteAlert = true
+                        }
+                    }
                 }
             }
             .navigationDestination(for: Folder.self) { folder in
-                FolderDetailView(folder: folder)
+                FolderDetailView(folder: folder, folders: folders)
             }
             .navigationDestination(for: Item.self) { item in
-                ItemDetailView(item: item)
+                ItemDetailView(folders: folders, item: item)
             }
             .navigationTitle("Collect")
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Picker("View", selection: $displayMode) {
+                        ForEach(DisplayMode.allCases) { mode in
+                            Image(systemName: {
+                                switch mode {
+                                case .nameOnly: return "line.3.horizontal"
+                                case .nameAndImage: return "list.bullet"
+                                case .imageOnly: return "square.grid.2x2"
+                                }
+                            }()).tag(mode)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     EditButton()
                 }
@@ -72,68 +152,29 @@ struct ContentView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showingNamePrompt) {
-                NavigationView {
-                    VStack(spacing: 20) {
-                        Text("Create Item")
-                            .font(.title)
-                            .bold()
-
-                        TextField("Enter item name", text: $newItemName)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .padding(.horizontal, 40)
-
-                        if let selectedImage = selectedImage {
-                            Image(uiImage: selectedImage)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(height: 150)
-                                .padding(.horizontal, 40)
-                        }
-
-                        Button("Select Image") {
-                            imagePickerPresented = true
-                        }
-
-                        Picker("Select Folder", selection: $selectedFolder) {
-                            Text("Unfiled").tag(nil as Folder?)
-                            ForEach(folders, id: \.self) { folder in
-                                Text(folder.name).tag(Optional(folder))
-                            }
-                        }
-                        .pickerStyle(MenuPickerStyle())
-                        .padding(.horizontal, 40)
-
-                        HStack(spacing: 40) {
-                            Button("Cancel", role: .cancel) {
-                                newItemName = ""
-                                selectedImage = nil
-                                selectedFolder = nil
-                                showingNamePrompt = false
-                            }
-                            Button("Add") {
-                                withAnimation {
-                                    let imageData = selectedImage?.jpegData(compressionQuality: 0.8)
-                                    let newItem = Item(timestamp: Date(), name: newItemName, imageData: imageData)
-                                    if let folder = selectedFolder {
-                                        folder.items.append(newItem)
-                                    } else {
-                                        modelContext.insert(newItem)
-                                    }
-                                    newItemName = ""
-                                    selectedImage = nil
-                                    selectedFolder = nil
-                                    showingNamePrompt = false
-                                }
-                            }
-                        }
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .multilineTextAlignment(.center)
-                    .sheet(isPresented: $imagePickerPresented) {
-                        ImagePicker(image: $selectedImage)
-                    }
+            .alert("Delete Folder?", isPresented: $showingDeleteAlert, presenting: folderToDelete) { folder in
+                Button("Delete", role: .destructive) {
+                    modelContext.delete(folder)
                 }
+                Button("Cancel", role: .cancel) { }
+            } message: { folder in
+                Text("Deleting the folder \"\(folder.name)\" will also delete all items in it.")
+            }
+            .sheet(isPresented: $showingNamePrompt) {
+                AddItemSheet(
+                    newItemName: $newItemName,
+                    selectedImage: $selectedImage,
+                    selectedFolder: $selectedFolder,
+                    imagePickerPresented: $imagePickerPresented,
+                    folders: folders,
+                    modelContext: modelContext,
+                    dismiss: {
+                        showingNamePrompt = false
+                        newItemName = ""
+                        selectedImage = nil
+                        selectedFolder = nil
+                    }
+                )
             }
         }
         .sheet(isPresented: $showingFolderPrompt) {
