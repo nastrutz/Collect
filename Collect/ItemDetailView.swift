@@ -14,37 +14,65 @@ struct ItemDetailView: View {
     @Bindable var item: Item
     @State private var showingImagePicker = false
     @State private var selectedImage: UIImage?
+    @State private var showingFullImage = false
 
     var body: some View {
-        Form {
-            Section {
-                if let imageData = item.imageData, let uiImage = UIImage(data: imageData) {
-                    Image(uiImage: uiImage)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(height: 200)
+        ZStack {
+            Form {
+                Section {
+                    if let imageData = item.imageData, let uiImage = UIImage(data: imageData) {
+                        HStack {
+                            Spacer()
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .aspectRatio(1, contentMode: .fit)
+                                .frame(width: 200, height: 200)
+                                .onTapGesture {
+                                    showingFullImage = true
+                                }
+                            Spacer()
+                        }
+                    }
+                    Button("Add or Change Image") {
+                        showingImagePicker = true
+                    }
                 }
-                Button("Add or Change Image") {
-                    showingImagePicker = true
+
+                Section {
+                    HStack {
+                        Text("Folder:")
+                            .font(.subheadline)
+                        Spacer()
+                        Picker("", selection: $item.folder) {
+                            Text("Unfiled").tag(nil as Folder?)
+                            ForEach(folders, id: \.self) { folder in
+                                Text(folder.name).tag(Optional(folder))
+                            }
+                        }
+                        .labelsHidden()
+                        .frame(maxWidth: 150)
+                        .clipped()
+                    }
+                    .padding(.vertical, 4)
                 }
             }
 
-            Section {
-                HStack {
-                    Text("Folder:")
-                        .font(.subheadline)
+            // Overlay full image
+            if showingFullImage, let imageData = item.imageData, let uiImage = UIImage(data: imageData) {
+                Color.black.opacity(0.6)
+                    .ignoresSafeArea()
+                VStack {
                     Spacer()
-                    Picker("", selection: $item.folder) {
-                        Text("Unfiled").tag(nil as Folder?)
-                        ForEach(folders, id: \.self) { folder in
-                            Text(folder.name).tag(Optional(folder))
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFit()
+                        .padding()
+                        .onTapGesture {
+                            showingFullImage = false
                         }
-                    }
-                    .labelsHidden()
-                    .frame(maxWidth: 150)
-                    .clipped()
+                    Spacer()
                 }
-                .padding(.vertical, 4)
+                .transition(.opacity)
             }
         }
         .navigationTitle(item.name)
