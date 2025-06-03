@@ -11,19 +11,24 @@ import SwiftData
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var items: [Item]
+    @State private var showingNamePrompt = false
+    @State private var newItemName = ""
+    @State private var selectedImage: UIImage?
+    @State private var imagePickerPresented = false
 
     var body: some View {
         NavigationSplitView {
             List {
                 ForEach(items) { item in
                     NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
+                        ItemDetailView(item: item)
                     } label: {
                         Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
                     }
                 }
                 .onDelete(perform: deleteItems)
             }
+            .navigationTitle("Collect")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     EditButton()
@@ -34,16 +39,61 @@ struct ContentView: View {
                     }
                 }
             }
+            .sheet(isPresented: $showingNamePrompt) {
+                NavigationView {
+                    VStack(spacing: 20) {
+                        Text("Create Item")
+                            .font(.title)
+                            .bold()
+
+                        TextField("Enter item name", text: $newItemName)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .padding(.horizontal, 40)
+
+                        if let selectedImage = selectedImage {
+                            Image(uiImage: selectedImage)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 150)
+                                .padding(.horizontal, 40)
+                        }
+
+                        Button("Select Image") {
+                            imagePickerPresented = true
+                        }
+
+                        HStack(spacing: 40) {
+                            Button("Cancel", role: .cancel) {
+                                newItemName = ""
+                                selectedImage = nil
+                                showingNamePrompt = false
+                            }
+                            Button("Add") {
+                                withAnimation {
+                                    let imageData = selectedImage?.jpegData(compressionQuality: 0.8)
+                                    let newItem = Item(timestamp: Date(), name: newItemName, imageData: imageData)
+                                    modelContext.insert(newItem)
+                                    newItemName = ""
+                                    selectedImage = nil
+                                    showingNamePrompt = false
+                                }
+                            }
+                        }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .multilineTextAlignment(.center)
+                    .sheet(isPresented: $imagePickerPresented) {
+                        ImagePicker(image: $selectedImage)
+                    }
+                }
+            }
         } detail: {
             Text("Select an item")
         }
     }
 
     private func addItem() {
-        withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
-        }
+        showingNamePrompt = true
     }
 
     private func deleteItems(offsets: IndexSet) {
