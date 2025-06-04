@@ -8,14 +8,14 @@
 import SwiftUI
 import SwiftData
 
-struct ContentView: View {
-    enum DisplayMode: String, CaseIterable, Identifiable {
-        case nameOnly = "Text"
-        case nameAndImage = "Text + Image"
-        case imageOnly = "Image Grid"
+enum DisplayMode: String, CaseIterable, Identifiable {
+    case nameOnly = "Text"
+    case nameAndImage = "Text + Image"
+    case imageOnly = "Image Grid"
+    var id: String { self.rawValue }
+}
 
-        var id: String { self.rawValue }
-    }
+struct ContentView: View {
 
     @Environment(\.modelContext) private var modelContext
     @Query(filter: #Predicate<Item> { item in
@@ -33,6 +33,8 @@ struct ContentView: View {
     @State private var folderToDelete: Folder?
     @State private var showingDeleteAlert = false
     @State private var displayMode: DisplayMode = .nameAndImage
+    @State private var folderImage: UIImage?
+    @State private var folderImagePickerPresented = false
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -104,19 +106,14 @@ struct ContentView: View {
                     }
                 }
 
-                Section(header: Text("Folders")) {
-                    ForEach(folders) { folder in
-                        NavigationLink(value: folder) {
-                            Text(folder.name)
-                        }
-                    }
-                    .onDelete { indexSet in
-                        if let index = indexSet.first {
-                            folderToDelete = folders[index]
-                            showingDeleteAlert = true
-                        }
-                    }
-                }
+                FolderSectionView(
+                    folders: folders,
+                    modelContext: modelContext,
+                    displayMode: displayMode,
+                    folderToDelete: $folderToDelete,
+                    showingDeleteAlert: $showingDeleteAlert,
+                    path: $path
+                )
             }
             .navigationDestination(for: Folder.self) { folder in
                 FolderDetailView(folder: folder, folders: folders)
@@ -140,10 +137,10 @@ struct ContentView: View {
                     }
                     .pickerStyle(.segmented)
                 }
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem {
                     EditButton()
                 }
-                ToolbarItem {
+                ToolbarItem(placement: .navigationBarTrailing) {
                     Menu {
                         Button("New Item", action: addItem)
                         Button("New Folder", action: addFolder)
@@ -176,35 +173,18 @@ struct ContentView: View {
                     }
                 )
             }
-        }
-        .sheet(isPresented: $showingFolderPrompt) {
-            NavigationView {
-                VStack(spacing: 20) {
-                    Text("Create Folder")
-                        .font(.title)
-                        .bold()
-
-                    TextField("Enter folder name", text: $newFolderName)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .padding(.horizontal, 40)
-
-                    HStack(spacing: 40) {
-                        Button("Cancel", role: .cancel) {
-                            newFolderName = ""
-                            showingFolderPrompt = false
-                        }
-                        Button("Add") {
-                            withAnimation {
-                                let newFolder = Folder(name: newFolderName, items: [])
-                                modelContext.insert(newFolder)
-                                newFolderName = ""
-                                showingFolderPrompt = false
-                            }
-                        }
+            .sheet(isPresented: $showingFolderPrompt) {
+                AddFolderSheet(
+                    newFolderName: $newFolderName,
+                    folderImage: $folderImage,
+                    folderImagePickerPresented: $folderImagePickerPresented,
+                    modelContext: modelContext,
+                    dismiss: {
+                        newFolderName = ""
+                        folderImage = nil
+                        showingFolderPrompt = false
                     }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .multilineTextAlignment(.center)
+                )
             }
         }
     }

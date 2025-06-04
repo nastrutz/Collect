@@ -12,6 +12,7 @@ import SwiftData
 @Model
 final class Folder: Hashable {
     var name: String
+    var imageData: Data?
     @Relationship(deleteRule: .cascade) var items: [Item]
 
     init(name: String, items: [Item] = []) {

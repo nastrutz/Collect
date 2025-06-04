@@ -10,11 +10,16 @@ import SwiftUI
 
 struct ItemDetailView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
     let folders: [Folder]
     @Bindable var item: Item
     @State private var showingImagePicker = false
     @State private var selectedImage: UIImage?
     @State private var showingFullImage = false
+    @State private var showingFolderPrompt = false
+    @State private var newFolderName = ""
+    @State private var folderImage: UIImage?
+    @State private var folderImagePickerPresented = false
 
     var body: some View {
         ZStack {
@@ -48,12 +53,32 @@ struct ItemDetailView: View {
                             ForEach(folders, id: \.self) { folder in
                                 Text(folder.name).tag(Optional(folder))
                             }
+                            Text("New Folder…").tag(Folder?.some(Folder(name: "__new__")))
                         }
                         .labelsHidden()
                         .frame(maxWidth: 150)
                         .clipped()
+                        .onChange(of: item.folder) { oldValue, newValue in
+                            if let newValue, newValue.name == "__new__" {
+                                showingFolderPrompt = true
+                                item.folder = nil
+                            }
+                        }
                     }
                     .padding(.vertical, 4)
+                }
+                
+                Section {
+                    Button(role: .destructive) {
+                        modelContext.delete(item)
+                        dismiss()
+                    } label: {
+                        HStack {
+                            Spacer()
+                            Text("Delete Item")
+                            Spacer()
+                        }
+                    }
                 }
             }
 
@@ -78,6 +103,19 @@ struct ItemDetailView: View {
         .navigationTitle(item.name)
         .sheet(isPresented: $showingImagePicker) {
             ImagePicker(image: $selectedImage)
+        }
+        .sheet(isPresented: $showingFolderPrompt) {
+            AddFolderSheet(
+                newFolderName: $newFolderName,
+                folderImage: $folderImage,
+                folderImagePickerPresented: $folderImagePickerPresented,
+                modelContext: modelContext,
+                dismiss: {
+                    showingFolderPrompt = false
+                    newFolderName = ""
+                    folderImage = nil
+                }
+            )
         }
         .onChange(of: selectedImage) {
             if let selectedImage {
