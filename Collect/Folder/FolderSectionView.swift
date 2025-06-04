@@ -35,7 +35,9 @@ struct FolderSectionView: View {
                                let uiImage = UIImage(data: imageData) {
                                 Image(uiImage: uiImage)
                                     .resizable()
+                                    .scaledToFill()
                                     .frame(width: 40, height: 40)
+                                    .clipped()
                                     .clipShape(RoundedRectangle(cornerRadius: 8))
                             }
                         }

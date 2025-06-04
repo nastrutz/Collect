@@ -141,7 +141,13 @@ struct ContentView: View {
                 }
                 ToolbarItem {
                     Button {
-                        showingSettings = true
+                        #if DEBUG
+                        if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {
+                            showingSettings = true
+                            return
+                        }
+                        #endif
+                        authenticateForSettings()
                     } label: {
                         Image(systemName: "gear")
                     }
@@ -196,16 +202,6 @@ struct ContentView: View {
         .sheet(isPresented: $showingSettings) {
             SettingsView()
         }
-        .onChange(of: showingSettings) {
-            #if DEBUG
-            if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {
-                return
-            }
-            #endif
-            if showingSettings {
-                authenticateForSettings()
-            }
-        }
     }
 
     private func addItem() {
@@ -229,10 +225,8 @@ struct ContentView: View {
         var error: NSError?
         if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
             context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: "Access settings") { success, _ in
-                if !success {
-                    DispatchQueue.main.async {
-                        showingSettings = false
-                    }
+                DispatchQueue.main.async {
+                    showingSettings = success
                 }
             }
         } else {
@@ -244,46 +238,4 @@ struct ContentView: View {
 #Preview {
     ContentView()
         .modelContainer(for: [Item.self, Folder.self], inMemory: true)
-}
-
-struct SettingsView: View {
-    @Environment(\.dismiss) var dismiss
-    @AppStorage("defaultDisplayMode") var defaultDisplayMode: DisplayMode = .nameAndImage
-    @AppStorage("enableFolderLocking") var enableFolderLocking: Bool = true
-    
-    @State private var tempDisplayMode: DisplayMode
-    @State private var tempEnableFolderLocking: Bool
-    
-    init() {
-        let storedDisplayMode = UserDefaults.standard.string(forKey: "defaultDisplayMode")
-        _tempDisplayMode = State(initialValue: DisplayMode(rawValue: storedDisplayMode ?? DisplayMode.nameAndImage.rawValue) ?? .nameAndImage)
-        _tempEnableFolderLocking = State(initialValue: UserDefaults.standard.bool(forKey: "enableFolderLocking"))
-    }
-    
-    var body: some View {
-        NavigationView {
-            Form {
-                Section(header: Text("App Settings")) {
-                    Picker("Default View Mode", selection: $tempDisplayMode) {
-                        ForEach(DisplayMode.allCases) { mode in
-                            Text(mode.rawValue).tag(mode)
-                        }
-                    }
-
-                    Toggle("Enable Folder Locking", isOn: $tempEnableFolderLocking)
-                }
-            }
-            .navigationTitle("Settings")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
-                        UserDefaults.standard.set(tempDisplayMode.rawValue, forKey: "defaultDisplayMode")
-                        UserDefaults.standard.set(tempEnableFolderLocking, forKey: "enableFolderLocking")
-                        dismiss()
-                    }
-                }
-            }
-        }
-    }
 }

@@ -26,7 +26,7 @@ struct ItemGridView: View {
                                 if let imageData = item.imageData, let uiImage = UIImage(data: imageData) {
                                     Image(uiImage: uiImage)
                                         .resizable()
-                                        .aspectRatio(1, contentMode: .fill)
+                                        .scaledToFill()
                                         .frame(width: (UIScreen.main.bounds.width - 96) / 2, height: (UIScreen.main.bounds.width - 96) / 2)
                                         .clipped()
                                         .cornerRadius(8)

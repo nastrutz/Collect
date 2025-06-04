@@ -111,7 +111,7 @@ struct FolderSettingsView: View {
                     Toggle("Lock with Face ID", isOn: $useFaceID)
                 }
             }
-            .navigationTitle("Settings")
+            .navigationTitle("Info/Settings")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
