@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import LocalAuthentication
 
 enum DisplayMode: String, CaseIterable, Identifiable {
     case nameOnly = "Text"
@@ -32,9 +33,10 @@ struct ContentView: View {
     @State private var path = NavigationPath()
     @State private var folderToDelete: Folder?
     @State private var showingDeleteAlert = false
-    @State private var displayMode: DisplayMode = .nameAndImage
+    @AppStorage("defaultDisplayMode") private var displayMode: DisplayMode = .nameAndImage
     @State private var folderImage: UIImage?
     @State private var folderImagePickerPresented = false
+    @State private var showingSettings = false
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -138,7 +140,11 @@ struct ContentView: View {
                     .pickerStyle(.segmented)
                 }
                 ToolbarItem {
-                    EditButton()
+                    Button {
+                        showingSettings = true
+                    } label: {
+                        Image(systemName: "gear")
+                    }
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Menu {
@@ -187,6 +193,19 @@ struct ContentView: View {
                 )
             }
         }
+        .sheet(isPresented: $showingSettings) {
+            SettingsView()
+        }
+        .onChange(of: showingSettings) {
+            #if DEBUG
+            if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {
+                return
+            }
+            #endif
+            if showingSettings {
+                authenticateForSettings()
+            }
+        }
     }
 
     private func addItem() {
@@ -204,9 +223,67 @@ struct ContentView: View {
             }
         }
     }
+    
+    private func authenticateForSettings() {
+        let context = LAContext()
+        var error: NSError?
+        if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
+            context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: "Access settings") { success, _ in
+                if !success {
+                    DispatchQueue.main.async {
+                        showingSettings = false
+                    }
+                }
+            }
+        } else {
+            showingSettings = false
+        }
+    }
 }
 
 #Preview {
     ContentView()
         .modelContainer(for: [Item.self, Folder.self], inMemory: true)
+}
+
+struct SettingsView: View {
+    @Environment(\.dismiss) var dismiss
+    @AppStorage("defaultDisplayMode") var defaultDisplayMode: DisplayMode = .nameAndImage
+    @AppStorage("enableFolderLocking") var enableFolderLocking: Bool = true
+    
+    @State private var tempDisplayMode: DisplayMode
+    @State private var tempEnableFolderLocking: Bool
+    
+    init() {
+        let storedDisplayMode = UserDefaults.standard.string(forKey: "defaultDisplayMode")
+        _tempDisplayMode = State(initialValue: DisplayMode(rawValue: storedDisplayMode ?? DisplayMode.nameAndImage.rawValue) ?? .nameAndImage)
+        _tempEnableFolderLocking = State(initialValue: UserDefaults.standard.bool(forKey: "enableFolderLocking"))
+    }
+    
+    var body: some View {
+        NavigationView {
+            Form {
+                Section(header: Text("App Settings")) {
+                    Picker("Default View Mode", selection: $tempDisplayMode) {
+                        ForEach(DisplayMode.allCases) { mode in
+                            Text(mode.rawValue).tag(mode)
+                        }
+                    }
+
+                    Toggle("Enable Folder Locking", isOn: $tempEnableFolderLocking)
+                }
+            }
+            .navigationTitle("Settings")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        UserDefaults.standard.set(tempDisplayMode.rawValue, forKey: "defaultDisplayMode")
+                        UserDefaults.standard.set(tempEnableFolderLocking, forKey: "enableFolderLocking")
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
 }

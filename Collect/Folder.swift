@@ -10,14 +10,16 @@ import Foundation
 import SwiftData
 
 @Model
-final class Folder: Hashable {
+final class Folder: ObservableObject, Hashable {
     var name: String
     var imageData: Data?
+    var isLocked: Bool
     @Relationship(deleteRule: .cascade) var items: [Item]
 
-    init(name: String, items: [Item] = []) {
+    init(name: String, items: [Item] = [], isLocked: Bool = false) {
         self.name = name
         self.items = items
+        self.isLocked = isLocked
     }
 
     static func == (lhs: Folder, rhs: Folder) -> Bool {

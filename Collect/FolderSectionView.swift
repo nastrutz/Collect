@@ -8,8 +8,10 @@
 
 import SwiftUI
 import SwiftData
+import LocalAuthentication
 
 struct FolderSectionView: View {
+    @AppStorage("enableFolderLocking") private var enableFolderLocking: Bool = true
     let folders: [Folder]
     let modelContext: ModelContext
     let displayMode: DisplayMode
@@ -20,7 +22,13 @@ struct FolderSectionView: View {
     var body: some View {
         Section(header: Text("Folders")) {
             ForEach(folders) { folder in
-                NavigationLink(value: folder) {
+                Button {
+                    if folder.isLocked && enableFolderLocking {
+                        authenticateAndNavigate(folder: folder)
+                    } else {
+                        path.append(folder)
+                    }
+                } label: {
                     HStack {
                         if displayMode != .nameOnly {
                             if let imageData = folder.imageData ?? folder.items.first(where: { $0.imageData != nil })?.imageData,
@@ -47,6 +55,27 @@ struct FolderSectionView: View {
                 if let index = indexSet.first {
                     folderToDelete = folders[index]
                     showingDeleteAlert = true
+                }
+            }
+        }
+    }
+
+    func authenticateAndNavigate(folder: Folder) {
+        #if DEBUG
+        if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {
+            path.append(folder)
+            return
+        }
+        #endif
+
+        let context = LAContext()
+        var error: NSError?
+        if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
+            context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: "Unlock folder") { success, _ in
+                if success {
+                    DispatchQueue.main.async {
+                        path.append(folder)
+                    }
                 }
             }
         }

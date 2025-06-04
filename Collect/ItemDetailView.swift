@@ -20,6 +20,8 @@ struct ItemDetailView: View {
     @State private var newFolderName = ""
     @State private var folderImage: UIImage?
     @State private var folderImagePickerPresented = false
+    @State private var showingRenameAlert = false
+    @State private var updatedItemName = ""
 
     var body: some View {
         ZStack {
@@ -101,6 +103,23 @@ struct ItemDetailView: View {
             }
         }
         .navigationTitle(item.name)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    updatedItemName = item.name
+                    showingRenameAlert = true
+                } label: {
+                    Image(systemName: "info.circle")
+                }
+            }
+        }
+        .alert("Rename Item", isPresented: $showingRenameAlert, actions: {
+            TextField("Item Name", text: $updatedItemName)
+            Button("Save", role: .none) {
+                item.name = updatedItemName
+            }
+            Button("Cancel", role: .cancel) {}
+        })
         .sheet(isPresented: $showingImagePicker) {
             ImagePicker(image: $selectedImage)
         }

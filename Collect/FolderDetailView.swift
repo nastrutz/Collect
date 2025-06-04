@@ -13,6 +13,7 @@ struct FolderDetailView: View {
     let folders: [Folder]
 
     @State private var displayMode: DisplayMode = .nameAndImage
+    @State private var showingFolderSettings = false
 
     enum DisplayMode: String, CaseIterable, Identifiable {
         case nameOnly = "Name"
@@ -73,6 +74,57 @@ struct FolderDetailView: View {
                 }
                 .pickerStyle(.segmented)
                 .frame(width: 120)
+            }
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    showingFolderSettings = true
+                } label: {
+                    Image(systemName: "info.circle")
+                }
+            }
+        }
+        .sheet(isPresented: $showingFolderSettings) {
+            FolderSettingsView(folder: folder, isPresented: $showingFolderSettings)
+        }
+    }
+}
+
+
+struct FolderSettingsView: View {
+    @ObservedObject var folder: Folder
+    @Binding var isPresented: Bool
+    @State private var updatedFolderName: String
+    @State private var useFaceID: Bool
+
+    init(folder: Folder, isPresented: Binding<Bool>) {
+        self.folder = folder
+        self._isPresented = isPresented
+        _updatedFolderName = State(initialValue: folder.name)
+        _useFaceID = State(initialValue: folder.isLocked)
+    }
+
+    var body: some View {
+        NavigationView {
+            Form {
+                Section(header: Text("Folder Settings")) {
+                    TextField("Folder Name", text: $updatedFolderName)
+                    Toggle("Lock with Face ID", isOn: $useFaceID)
+                }
+            }
+            .navigationTitle("Settings")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        isPresented = false
+                    }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        folder.name = updatedFolderName
+                        folder.isLocked = useFaceID
+                        isPresented = false
+                    }
+                }
             }
         }
     }

@@ -29,9 +29,22 @@
 		E0F61DD62DED96C7000DD0EC /* CollectUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CollectUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		E0E14C1E2DF0734E00E3C2A1 /* Exceptions for "Collect" folder in "Collect" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = E0F61DBC2DED96C6000DD0EC /* Collect */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		E0F61DBF2DED96C6000DD0EC /* Collect */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				E0E14C1E2DF0734E00E3C2A1 /* Exceptions for "Collect" folder in "Collect" target */,
+			);
 			path = Collect;
 			sourceTree = "<group>";
 		};
@@ -400,7 +413,9 @@
 				DEVELOPMENT_TEAM = WSLZF323DU;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Collect/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Collect;
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "This app uses Face ID to unlock protected folders.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -429,7 +444,9 @@
 				DEVELOPMENT_TEAM = WSLZF323DU;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Collect/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Collect;
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "This app uses Face ID to unlock protected folders.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
