@@ -5,7 +5,6 @@
 //  Created by Nic-Alexander Strutz on 6/3/25.
 //
 
-
 import SwiftUI
 import SwiftData
 
@@ -17,6 +16,9 @@ struct AddItemSheet: View {
     let folders: [Folder]
     let modelContext: ModelContext
     let dismiss: () -> Void
+
+    @State private var showFolderSuggestion = false
+    @State private var suggestedFolder: Folder? = nil
 
     var body: some View {
         NavigationView {
@@ -58,12 +60,25 @@ struct AddItemSheet: View {
                         withAnimation {
                             let imageData = selectedImage?.jpegData(compressionQuality: 0.8)
                             let newItem = Item(timestamp: Date(), name: newItemName, imageData: imageData)
-                            if let folder = selectedFolder {
-                                folder.items.append(newItem)
+
+                            if selectedFolder != nil {
+                                selectedFolder!.items.append(newItem)
+                                resetAndDismiss()
                             } else {
-                                modelContext.insert(newItem)
+                                let lowercasedItemName = newItemName.lowercased()
+                                if let matchingFolder = folders.first(where: { folder in
+                                    folder.name.lowercased().split(separator: " ").contains(where: { lowercasedItemName.contains($0) })
+                                }) {
+                                    DispatchQueue.main.async {
+                                        suggestedFolder = matchingFolder
+                                        showFolderSuggestion = true
+                                        return
+                                    }
+                                } else {
+                                    modelContext.insert(newItem)
+                                    resetAndDismiss()
+                                }
                             }
-                            resetAndDismiss()
                         }
                     }
                 }
@@ -72,6 +87,28 @@ struct AddItemSheet: View {
             .multilineTextAlignment(.center)
             .sheet(isPresented: $imagePickerPresented) {
                 ImagePicker(image: $selectedImage)
+            }
+            .alert("Suggested Folder", isPresented: $showFolderSuggestion) {
+                Button("Yes") {
+                    if let folder = suggestedFolder {
+                        let imageData = selectedImage?.jpegData(compressionQuality: 0.8)
+                        let newItem = Item(timestamp: Date(), name: newItemName, imageData: imageData)
+                        folder.items.append(newItem)
+                    } else {
+                        let imageData = selectedImage?.jpegData(compressionQuality: 0.8)
+                        let newItem = Item(timestamp: Date(), name: newItemName, imageData: imageData)
+                        modelContext.insert(newItem)
+                    }
+                    resetAndDismiss()
+                }
+                Button("No", role: .cancel) {
+                    let imageData = selectedImage?.jpegData(compressionQuality: 0.8)
+                    let newItem = Item(timestamp: Date(), name: newItemName, imageData: imageData)
+                    modelContext.insert(newItem)
+                    resetAndDismiss()
+                }
+            } message: {
+                Text("The item name contains a word matching the folder '\(suggestedFolder?.name ?? "")'. Do you want to add it there?")
             }
         }
     }

@@ -5,7 +5,6 @@
 //  Created by Nic-Alexander Strutz on 6/3/25.
 //
 
-
 import SwiftUI
 
 struct ItemDetailView: View {
@@ -112,6 +111,18 @@ struct ItemDetailView: View {
                     Image(systemName: "info.circle")
                 }
             }
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    let snapshotImage = generateItemImage()
+                    let activityVC = UIActivityViewController(activityItems: [snapshotImage], applicationActivities: nil)
+                    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                       let rootVC = windowScene.windows.first?.rootViewController {
+                        rootVC.present(activityVC, animated: true)
+                    }
+                } label: {
+                    Image(systemName: "square.and.arrow.up")
+                }
+            }
         }
         .alert("Rename Item", isPresented: $showingRenameAlert, actions: {
             TextField("Item Name", text: $updatedItemName)
@@ -140,6 +151,56 @@ struct ItemDetailView: View {
             if let selectedImage {
                 item.imageData = selectedImage.jpegData(compressionQuality: 0.8)
             }
+        }
+    }
+
+    func generateItemImage() -> UIImage {
+        let renderer = UIGraphicsImageRenderer(size: CGSize(width: 320, height: 440))
+        return renderer.image { context in
+            let ctx = context.cgContext
+
+            // Background
+            ctx.setFillColor(UIColor.systemGray6.cgColor)
+            ctx.fill(CGRect(x: 0, y: 0, width: 320, height: 440))
+
+            // Header banner
+            ctx.setFillColor(UIColor.systemBlue.cgColor)
+            ctx.fill(CGRect(x: 0, y: 0, width: 320, height: 60))
+            let headerAttributes: [NSAttributedString.Key: Any] = [
+                .font: UIFont.boldSystemFont(ofSize: 22),
+                .foregroundColor: UIColor.white,
+                .paragraphStyle: {
+                    let p = NSMutableParagraphStyle()
+                    p.alignment = .center
+                    return p
+                }()
+            ]
+            let header = "Item Snapshot"
+            header.draw(with: CGRect(x: 0, y: 15, width: 320, height: 30), options: .usesLineFragmentOrigin, attributes: headerAttributes, context: nil)
+
+            // Image with border
+            if let imageData = item.imageData, let uiImage = UIImage(data: imageData) {
+                let imageRect = CGRect(x: 60, y: 80, width: 200, height: 200)
+                ctx.setStrokeColor(UIColor.systemGray.cgColor)
+                ctx.setLineWidth(2)
+                ctx.stroke(imageRect)
+                uiImage.draw(in: imageRect)
+            }
+
+            // Text styling
+            let paragraphStyle = NSMutableParagraphStyle()
+            paragraphStyle.alignment = .center
+            let attrs: [NSAttributedString.Key: Any] = [
+                .font: UIFont.systemFont(ofSize: 18),
+                .foregroundColor: UIColor.label,
+                .paragraphStyle: paragraphStyle
+            ]
+
+            let nameText = "Name: \(item.name)"
+            nameText.draw(with: CGRect(x: 20, y: 300, width: 280, height: 30), options: .usesLineFragmentOrigin, attributes: attrs, context: nil)
+
+            let folderText = "Folder: \(item.folder?.name ?? "Unfiled")"
+            folderText.draw(with: CGRect(x: 20, y: 340, width: 280, height: 30), options: .usesLineFragmentOrigin, attributes: attrs, context: nil)
         }
     }
 }
