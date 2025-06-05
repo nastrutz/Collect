@@ -7,8 +7,13 @@
 
 import SwiftUI
 import SwiftData
+import Foundation
 
 struct AddItemSheet: View {
+    @AppStorage("themeRed") private var themeRed: Double = 0.0
+    @AppStorage("themeGreen") private var themeGreen: Double = 0.478
+    @AppStorage("themeBlue") private var themeBlue: Double = 1.0
+
     @Binding var newItemName: String
     @Binding var selectedImage: UIImage?
     @Binding var selectedFolder: Folder?
@@ -19,6 +24,7 @@ struct AddItemSheet: View {
 
     @State private var showFolderSuggestion = false
     @State private var suggestedFolder: Folder? = nil
+    @AppStorage("disableSuggestedFolders") private var disableSuggestedFolders: Bool = false
 
     var body: some View {
         NavigationView {
@@ -39,8 +45,11 @@ struct AddItemSheet: View {
                         .padding(.horizontal, 40)
                 }
 
-                Button("Select Image") {
+                Button {
                     imagePickerPresented = true
+                } label: {
+                    Text("Select Image")
+                        .foregroundColor(Color(red: themeRed, green: themeGreen, blue: themeBlue))
                 }
 
                 Picker("Select Folder", selection: $selectedFolder) {
@@ -51,20 +60,24 @@ struct AddItemSheet: View {
                 }
                 .pickerStyle(MenuPickerStyle())
                 .padding(.horizontal, 40)
+                .tint(Color(red: themeRed, green: themeGreen, blue: themeBlue))
 
                 HStack(spacing: 40) {
-                    Button("Cancel", role: .cancel) {
+                    Button(role: .cancel) {
                         resetAndDismiss()
+                    } label: {
+                        Text("Cancel")
+                            .foregroundColor(Color(red: themeRed, green: themeGreen, blue: themeBlue))
                     }
-                    Button("Add") {
+                    Button {
                         withAnimation {
                             let imageData = selectedImage?.jpegData(compressionQuality: 0.8)
                             let newItem = Item(timestamp: Date(), name: newItemName, imageData: imageData)
 
-                            if selectedFolder != nil {
-                                selectedFolder!.items.append(newItem)
+                            if let folder = selectedFolder {
+                                folder.items.append(newItem)
                                 resetAndDismiss()
-                            } else {
+                            } else if !disableSuggestedFolders {
                                 let lowercasedItemName = newItemName.lowercased()
                                 if let matchingFolder = folders.first(where: { folder in
                                     folder.name.lowercased().split(separator: " ").contains(where: { lowercasedItemName.contains($0) })
@@ -78,8 +91,14 @@ struct AddItemSheet: View {
                                     modelContext.insert(newItem)
                                     resetAndDismiss()
                                 }
+                            } else {
+                                modelContext.insert(newItem)
+                                resetAndDismiss()
                             }
                         }
+                    } label: {
+                        Text("Add")
+                            .foregroundColor(Color(red: themeRed, green: themeGreen, blue: themeBlue))
                     }
                 }
             }

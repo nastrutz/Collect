@@ -9,6 +9,10 @@
 import SwiftUI
 
 struct FolderDetailView: View {
+    @AppStorage("themeRed") private var themeRed: Double = 0.0
+    @AppStorage("themeGreen") private var themeGreen: Double = 0.478
+    @AppStorage("themeBlue") private var themeBlue: Double = 1.0
+
     let folder: Folder
     let folders: [Folder]
 
@@ -80,6 +84,7 @@ struct FolderDetailView: View {
                     showingFolderSettings = true
                 } label: {
                     Image(systemName: "info.circle")
+                        .foregroundColor(Color(red: themeRed, green: themeGreen, blue: themeBlue))
                 }
             }
         }
@@ -91,6 +96,10 @@ struct FolderDetailView: View {
 
 
 struct FolderSettingsView: View {
+    @AppStorage("themeRed") private var themeRed: Double = 0.0
+    @AppStorage("themeGreen") private var themeGreen: Double = 0.478
+    @AppStorage("themeBlue") private var themeBlue: Double = 1.0
+
     @ObservedObject var folder: Folder
     @Binding var isPresented: Bool
     @State private var updatedFolderName: String
@@ -127,5 +136,10 @@ struct FolderSettingsView: View {
                 }
             }
         }
+        .tint(
+            (themeRed == 0.0 && themeGreen == 0.478 && themeBlue == 1.0)
+            ? .blue
+            : Color(red: themeRed, green: themeGreen, blue: themeBlue)
+        )
     }
 }

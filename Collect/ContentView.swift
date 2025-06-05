@@ -37,6 +37,13 @@ struct ContentView: View {
     @State private var folderImage: UIImage?
     @State private var folderImagePickerPresented = false
     @State private var showingSettings = false
+    @AppStorage("themeRed") private var themeRed: Double = 0.0
+    @AppStorage("themeGreen") private var themeGreen: Double = 0.478
+    @AppStorage("themeBlue") private var themeBlue: Double = 1.0
+
+    private var currentThemeColor: Color {
+        Color(red: themeRed, green: themeGreen, blue: themeBlue)
+    }
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -138,6 +145,7 @@ struct ContentView: View {
                         }
                     }
                     .pickerStyle(.segmented)
+                    .tint(currentThemeColor)
                 }
                 ToolbarItem {
                     Button {
@@ -151,6 +159,7 @@ struct ContentView: View {
                     } label: {
                         Image(systemName: "gear")
                     }
+                    .foregroundColor(currentThemeColor)
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Menu {
@@ -159,6 +168,7 @@ struct ContentView: View {
                     } label: {
                         Label("Add", systemImage: "plus")
                     }
+                    .tint(currentThemeColor)
                 }
             }
             .alert("Delete Folder?", isPresented: $showingDeleteAlert, presenting: folderToDelete) { folder in

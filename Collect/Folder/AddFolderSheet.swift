@@ -10,6 +10,10 @@ import SwiftData
 import LocalAuthentication
 
 struct AddFolderSheet: View {
+    @AppStorage("themeRed") private var themeRed: Double = 0.0
+    @AppStorage("themeGreen") private var themeGreen: Double = 0.478
+    @AppStorage("themeBlue") private var themeBlue: Double = 1.0
+
     @Binding var newFolderName: String
     @Binding var folderImage: UIImage?
     @Binding var folderImagePickerPresented: Bool
@@ -25,8 +29,11 @@ struct AddFolderSheet: View {
                     .font(.title)
                     .bold()
 
-                Button("Add or Change Image") {
+                Button {
                     folderImagePickerPresented = true
+                } label: {
+                    Text("Select Image")
+                        .foregroundColor(Color(red: themeRed, green: themeGreen, blue: themeBlue))
                 }
 
                 if let folderImage = folderImage {
@@ -43,20 +50,30 @@ struct AddFolderSheet: View {
 
                 Toggle("Lock with Face ID", isOn: $useFaceID)
                     .padding(.horizontal, 40)
+                    .tint(
+                        (themeRed == 0.0 && themeGreen == 0.478 && themeBlue == 1.0)
+                        ? .green
+                        : Color(red: themeRed, green: themeGreen, blue: themeBlue)
+                    )
 
                 HStack(spacing: 40) {
-                    Button("Cancel", role: .cancel) {
+                    Button(role: .cancel) {
                         dismiss()
+                    } label: {
+                        Text("Cancel")
+                            .foregroundColor(Color(red: themeRed, green: themeGreen, blue: themeBlue))
                     }
-                    Button("Add") {
+                    Button {
                         withAnimation {
-                            // NOTE: Ensure Folder model has a `isLocked: Bool` property
                             let newFolder = Folder(name: newFolderName)
                             newFolder.imageData = folderImage?.jpegData(compressionQuality: 0.8)
                             newFolder.isLocked = useFaceID
                             modelContext.insert(newFolder)
                             dismiss()
                         }
+                    } label: {
+                        Text("Add")
+                            .foregroundColor(Color(red: themeRed, green: themeGreen, blue: themeBlue))
                     }
                     .disabled(newFolderName.trimmingCharacters(in: .whitespaces).isEmpty)
                 }

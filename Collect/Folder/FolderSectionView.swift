@@ -5,7 +5,6 @@
 //  Created by Nic-Alexander Strutz on 6/3/25.
 //
 
-
 import SwiftUI
 import SwiftData
 import LocalAuthentication
@@ -22,13 +21,7 @@ struct FolderSectionView: View {
     var body: some View {
         Section(header: Text("Folders")) {
             ForEach(folders) { folder in
-                Button {
-                    if folder.isLocked && enableFolderLocking {
-                        authenticateAndNavigate(folder: folder)
-                    } else {
-                        path.append(folder)
-                    }
-                } label: {
+                NavigationLink(value: folder) {
                     HStack {
                         if displayMode != .nameOnly {
                             if let imageData = folder.imageData ?? folder.items.first(where: { $0.imageData != nil })?.imageData,
@@ -42,8 +35,16 @@ struct FolderSectionView: View {
                             }
                         }
                         Text(folder.name)
+                            .foregroundColor(.black)
                     }
                 }
+                .simultaneousGesture(TapGesture().onEnded {
+                    if folder.isLocked && enableFolderLocking {
+                        authenticateAndNavigate(folder: folder)
+                    } else {
+                        path.append(folder)
+                    }
+                })
                 .contextMenu {
                     Button(role: .destructive) {
                         folderToDelete = folder
