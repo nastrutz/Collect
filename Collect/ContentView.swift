@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 import LocalAuthentication
+import Combine
 
 enum DisplayMode: String, CaseIterable, Identifiable {
     case nameOnly = "Text"
@@ -41,6 +42,7 @@ struct ContentView: View {
     @AppStorage("themeGreen") private var themeGreen: Double = 0.478
     @AppStorage("themeBlue") private var themeBlue: Double = 1.0
     @State private var searchText = ""
+    @StateObject private var badgeManager = BadgeManager()
 
     private var currentThemeColor: Color {
         Color(red: themeRed, green: themeGreen, blue: themeBlue)
@@ -68,6 +70,15 @@ struct ContentView: View {
     var body: some View {
         NavigationStack(path: $path) {
             List {
+                Group {
+                    if !badgeManager.hideBadges {
+                        Section(header: Text("Badges")) {
+                            BadgeLabel(title: "5 Items", color: .gray, unlocked: badgeManager.badge5Unlocked)
+                            BadgeLabel(title: "10 Items", color: .yellow, unlocked: badgeManager.badge10Unlocked)
+                            BadgeLabel(title: "20 Items", color: .purple, unlocked: badgeManager.badge20Unlocked)
+                        }
+                    }
+                }
                 Section(header: Text("Unfiled items")) {
                     switch displayMode {
                     case .nameOnly:
@@ -229,6 +240,15 @@ struct ContentView: View {
                     }
                 )
             }
+        }
+        .onAppear {
+            badgeManager.updateBadges(for: items + folders.flatMap { $0.items })
+        }
+        .onChange(of: items) { _, _ in
+            badgeManager.updateBadges(for: items + folders.flatMap { $0.items })
+        }
+        .onChange(of: folders) { _, _ in
+            badgeManager.updateBadges(for: items + folders.flatMap { $0.items })
         }
         .sheet(isPresented: $showingSettings) {
             SettingsView()

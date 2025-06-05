@@ -13,18 +13,23 @@ class BadgeManager: ObservableObject {
     @AppStorage("badge5Unlocked") var badge5Unlocked: Bool = false
     @AppStorage("badge10Unlocked") var badge10Unlocked: Bool = false
     @AppStorage("badge20Unlocked") var badge20Unlocked: Bool = false
+    @AppStorage("totalItemsCollected") var totalItemsCollected: Int = 0
+    @AppStorage("hideBadges") var hideBadges: Bool = false
 
     func updateBadges(for items: [Item]) {
-        let organizedCount = items.filter { $0.folder != nil }.count
+        totalItemsCollected = items.count
 
-        if organizedCount >= 5 {
+        if totalItemsCollected >= 1 {
             badge5Unlocked = true
         }
-        if organizedCount >= 10 {
+        if totalItemsCollected >= 2 {
             badge10Unlocked = true
         }
-        if organizedCount >= 20 {
+        if totalItemsCollected >= 3 {
             badge20Unlocked = true
+        }
+        if totalItemsCollected >= 4 {
+            hideBadges = true
         }
     }
 

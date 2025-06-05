@@ -140,6 +140,25 @@ struct SettingsView: View {
                         }
                     }
                     .foregroundColor(.red)
+                    
+                    Button {
+                        UserDefaults.standard.removeObject(forKey: "badge5Unlocked")
+                        UserDefaults.standard.removeObject(forKey: "badge10Unlocked")
+                        UserDefaults.standard.removeObject(forKey: "badge20Unlocked")
+                        UserDefaults.standard.removeObject(forKey: "hideBadges")
+                        // Force refresh by reassigning all @AppStorage-bound values
+                        UserDefaults.standard.set(false, forKey: "badge5Unlocked")
+                        UserDefaults.standard.set(false, forKey: "badge10Unlocked")
+                        UserDefaults.standard.set(false, forKey: "badge20Unlocked")
+                        UserDefaults.standard.set(false, forKey: "hideBadges")
+                    } label: {
+                        HStack {
+                            Spacer()
+                            Text("Reset Badge Progress")
+                            Spacer()
+                        }
+                    }
+                    .foregroundColor(.red)
                 }
             }
             .navigationTitle("Settings")
