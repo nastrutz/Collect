@@ -18,6 +18,7 @@ struct FolderDetailView: View {
 
     @State private var displayMode: DisplayMode = .nameAndImage
     @State private var showingFolderSettings = false
+    @State private var searchText = ""
 
     enum DisplayMode: String, CaseIterable, Identifiable {
         case nameOnly = "Name"
@@ -27,12 +28,23 @@ struct FolderDetailView: View {
         var id: String { rawValue }
     }
 
+    private var filteredItems: [Item] {
+        if searchText.isEmpty {
+            return folder.items
+        } else {
+            return folder.items.filter {
+                $0.name.localizedCaseInsensitiveContains(searchText) ||
+                $0.tags.contains(where: { $0.localizedCaseInsensitiveContains(searchText) })
+            }
+        }
+    }
+
     var body: some View {
         Group {
             switch displayMode {
             case .nameOnly:
                 List {
-                    ForEach(folder.items) { item in
+                    ForEach(filteredItems) { item in
                         NavigationLink(destination: ItemDetailView(folders: folders, item: item)) {
                             Text(item.name)
                                 .font(.body)
@@ -42,7 +54,7 @@ struct FolderDetailView: View {
 
             case .nameAndImage:
                 List {
-                    ForEach(folder.items) { item in
+                    ForEach(filteredItems) { item in
                         NavigationLink(destination: ItemDetailView(folders: folders, item: item)) {
                             HStack {
                                 if let imageData = item.imageData, let uiImage = UIImage(data: imageData) {
@@ -59,9 +71,14 @@ struct FolderDetailView: View {
                 }
 
             case .imageOnly:
-                ItemGridView(items: folder.items)
+                ItemGridView(items: filteredItems)
             }
         }
+        .searchable(
+            text: $searchText,
+            placement: .navigationBarDrawer(displayMode: .always),
+            prompt: "Search Folder Items"
+        )
         .navigationTitle(folder.name)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {

@@ -1,3 +1,11 @@
+//
+//  BadgeManager.swift
+//  Collect
+//
+//  Created by Nic-Alexander Strutz on 6/5/25.
+//
+
+
 import Foundation
 import SwiftUI
 

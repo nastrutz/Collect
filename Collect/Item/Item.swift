@@ -14,11 +14,13 @@ final class Item {
     var name: String
     var imageData: Data?
     @Relationship var folder: Folder?
+    var tags: [String] = []
 
-    init(timestamp: Date, name: String, imageData: Data? = nil, folder: Folder? = nil) {
+    init(timestamp: Date, name: String, imageData: Data? = nil, folder: Folder? = nil, tags: [String] = []) {
         self.timestamp = timestamp
         self.name = name
         self.imageData = imageData
         self.folder = folder
+        self.tags = tags
     }
 }

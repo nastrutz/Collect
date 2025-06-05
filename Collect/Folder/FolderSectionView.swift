@@ -35,7 +35,7 @@ struct FolderSectionView: View {
                             }
                         }
                         Text(folder.name)
-                            .foregroundColor(.black)
+                            .foregroundColor(.primary)
                     }
                 }
                 .simultaneousGesture(TapGesture().onEnded {

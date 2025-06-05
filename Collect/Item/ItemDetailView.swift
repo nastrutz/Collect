@@ -69,6 +69,38 @@ struct ItemDetailView: View {
                     .padding(.vertical, 4)
                 }
                 
+                Section(header: Text("Tags")) {
+                    ForEach(Array(item.tags.enumerated()), id: \.offset) { index, _ in
+                        HStack {
+                            TextField("Tag", text: Binding(
+                                get: {
+                                    guard item.tags.indices.contains(index) else { return "" }
+                                    return item.tags[index]
+                                },
+                                set: { newValue in
+                                    if item.tags.indices.contains(index) {
+                                        item.tags[index] = newValue
+                                    }
+                                }
+                            ))
+                            Spacer()
+                            Button(action: {
+                                if item.tags.indices.contains(index) {
+                                    item.tags.remove(at: index)
+                                }
+                            }) {
+                                Image(systemName: "minus.circle")
+                                    .foregroundColor(.red)
+                            }
+                        }
+                    }
+                    Button(action: {
+                        item.tags.append("")
+                    }) {
+                        Label("Add Tag", systemImage: "plus.circle")
+                    }
+                }
+                
                 Section {
                     Button(role: .destructive) {
                         modelContext.delete(item)

@@ -40,9 +40,29 @@ struct ContentView: View {
     @AppStorage("themeRed") private var themeRed: Double = 0.0
     @AppStorage("themeGreen") private var themeGreen: Double = 0.478
     @AppStorage("themeBlue") private var themeBlue: Double = 1.0
+    @State private var searchText = ""
 
     private var currentThemeColor: Color {
         Color(red: themeRed, green: themeGreen, blue: themeBlue)
+    }
+
+    private var filteredItems: [Item] {
+        if searchText.isEmpty {
+            return items
+        } else {
+            return items.filter {
+                $0.name.localizedCaseInsensitiveContains(searchText) ||
+                $0.tags.contains(where: { $0.localizedCaseInsensitiveContains(searchText) })
+            }
+        }
+    }
+
+    private var filteredFolders: [Folder] {
+        if searchText.isEmpty {
+            return folders
+        } else {
+            return folders.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+        }
     }
 
     var body: some View {
@@ -51,7 +71,7 @@ struct ContentView: View {
                 Section(header: Text("Unfiled items")) {
                     switch displayMode {
                     case .nameOnly:
-                        ForEach(items) { item in
+                        ForEach(filteredItems) { item in
                             NavigationLink(value: item) {
                                 Text(item.name)
                             }
@@ -77,7 +97,7 @@ struct ContentView: View {
                         .onDelete(perform: deleteItems)
 
                     case .nameAndImage:
-                        ForEach(items) { item in
+                        ForEach(filteredItems) { item in
                             NavigationLink(value: item) {
                                 HStack {
                                     if let imageData = item.imageData, let uiImage = UIImage(data: imageData) {
@@ -111,12 +131,12 @@ struct ContentView: View {
                         .onDelete(perform: deleteItems)
 
                     case .imageOnly:
-                        ItemGridView(items: items)
+                        ItemGridView(items: filteredItems)
                     }
                 }
 
                 FolderSectionView(
-                    folders: folders,
+                    folders: filteredFolders,
                     modelContext: modelContext,
                     displayMode: displayMode,
                     folderToDelete: $folderToDelete,
@@ -124,6 +144,7 @@ struct ContentView: View {
                     path: $path
                 )
             }
+            .searchable(text: $searchText, prompt: "Search Collections")
             .navigationDestination(for: Folder.self) { folder in
                 FolderDetailView(folder: folder, folders: folders)
             }

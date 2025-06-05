@@ -9,11 +9,11 @@
 import SwiftUI
 
 struct WrapView<Data: RandomAccessCollection, Content: View>: View where Data.Element: Hashable {
-    var data: Data
-    var spacing: CGFloat = 8
-    var content: (Data.Element) -> Content
+    let data: Data
+    let spacing: CGFloat
+    let content: (Data.Element) -> Content
 
-    @State private var totalHeight = CGFloat.zero
+    @State private var totalHeight: CGFloat = .zero
 
     var body: some View {
         GeometryReader { geometry in
@@ -30,19 +30,42 @@ struct WrapView<Data: RandomAccessCollection, Content: View>: View where Data.El
             ForEach(Array(data), id: \.self) { item in
                 self.content(item)
                     .padding([.horizontal, .vertical], 4)
-                    .background(GeometryReader { geo in
-                        Color.clear
-                            .onAppear {
-                                if width + geo.size.width > geometry.size.width {
-                                    width = 0
-                                    height += geo.size.height + spacing
-                                }
-                                width += geo.size.width + spacing
-                                totalHeight = max(totalHeight, height + geo.size.height)
-                            }
+                    .alignmentGuide(.leading, computeValue: { dimension in
+                        if abs(width - dimension.width) > geometry.size.width {
+                            width = 0
+                            height -= dimension.height + spacing
+                        }
+                        let result = width
+                        if item == data.last {
+                            width = 0 // reset for next render pass
+                        } else {
+                            width -= dimension.width + spacing
+                        }
+                        return result
                     })
-                    .offset(x: width, y: height)
+                    .alignmentGuide(.top, computeValue: { _ in
+                        let result = height
+                        if item == data.last {
+                            height = 0 // reset for next render pass
+                        }
+                        return result
+                    })
             }
         }
+        .background(
+            GeometryReader { geo in
+                Color.clear.preference(key: HeightPreferenceKey.self, value: geo.size.height)
+            }
+        )
+        .onPreferenceChange(HeightPreferenceKey.self) {
+            self.totalHeight = $0
+        }
+    }
+} // end of WrapView
+
+private struct HeightPreferenceKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
     }
 }

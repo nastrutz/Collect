@@ -127,6 +127,19 @@ struct SettingsView: View {
                         }
                     }
                     .foregroundColor(.red)
+
+                    Button {
+                        tempThemeRed = 0.0
+                        tempThemeGreen = 0.478
+                        tempThemeBlue = 1.0
+                    } label: {
+                        HStack {
+                            Spacer()
+                            Text("Reset Theme Color")
+                            Spacer()
+                        }
+                    }
+                    .foregroundColor(.red)
                 }
             }
             .navigationTitle("Settings")
