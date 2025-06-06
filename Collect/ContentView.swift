@@ -241,15 +241,6 @@ struct ContentView: View {
                 )
             }
         }
-        .onAppear {
-            badgeManager.updateBadges(for: items + folders.flatMap { $0.items })
-        }
-        .onChange(of: items) { _, _ in
-            badgeManager.updateBadges(for: items + folders.flatMap { $0.items })
-        }
-        .onChange(of: folders) { _, _ in
-            badgeManager.updateBadges(for: items + folders.flatMap { $0.items })
-        }
         .sheet(isPresented: $showingSettings) {
             SettingsView()
         }

@@ -5,14 +5,6 @@
 //  Created by Nic-Alexander Strutz on 6/6/25.
 //
 
-
-//
-//  TagInputView.swift
-//  Collect
-//
-//  Created by Nic-Alexander Strutz on 6/6/25.
-//
-
 import SwiftUI
 
 struct TagInputView: View {

@@ -10,25 +10,31 @@ import Foundation
 import SwiftUI
 
 class BadgeManager: ObservableObject {
+    init() {
+        NotificationCenter.default.addObserver(forName: Notification.Name("ResetBadgesNotification"), object: nil, queue: .main) { _ in
+            self.totalItemsCollected = 0
+        }
+    }
+    static let shared = BadgeManager()
     @AppStorage("badge5Unlocked") var badge5Unlocked: Bool = false
     @AppStorage("badge10Unlocked") var badge10Unlocked: Bool = false
     @AppStorage("badge20Unlocked") var badge20Unlocked: Bool = false
     @AppStorage("totalItemsCollected") var totalItemsCollected: Int = 0
     @AppStorage("hideBadges") var hideBadges: Bool = false
 
-    func updateBadges(for items: [Item]) {
-        totalItemsCollected = items.count
+    func incrementBadgeItems() {
+        totalItemsCollected += 1
 
-        if totalItemsCollected >= 1 {
+        if totalItemsCollected >= 5 {
             badge5Unlocked = true
         }
-        if totalItemsCollected >= 2 {
+        if totalItemsCollected >= 10 {
             badge10Unlocked = true
         }
-        if totalItemsCollected >= 3 {
+        if totalItemsCollected >= 20 {
             badge20Unlocked = true
         }
-        if totalItemsCollected >= 4 {
+        if totalItemsCollected >= 21 {
             hideBadges = true
         }
     }

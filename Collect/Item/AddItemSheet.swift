@@ -39,65 +39,7 @@ struct AddItemSheet: View {
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .padding(.horizontal, 40)
 
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        TextField("Enter tags", text: $tagInput)
-                            .onChange(of: tagInput) { oldValue, newValue in
-                                if newValue.contains(" ") || newValue.contains(",") {
-                                    let parts = newValue
-                                        .split(whereSeparator: { $0 == " " || $0 == "," })
-                                        .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-                                        .filter { !$0.isEmpty }
-                                    for tag in parts {
-                                        if !tagInputTags.contains(tag) {
-                                            tagInputTags.append(tag)
-                                        }
-                                    }
-                                    tagInput = ""
-                                }
-                            }
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .frame(minWidth: 0, maxWidth: .infinity)
-
-                        Button(action: {
-                            tagInput = ""
-                        }) {
-                            Image(systemName: "xmark.circle.fill")
-                                .foregroundColor(.gray)
-                        }
-                        .opacity(tagInput.isEmpty ? 0 : 1)
-                    }
-                    .padding(.horizontal, 40)
-
-                    WrapView(data: tagInputTags, spacing: 8) { tag in
-                        HStack(spacing: 4) {
-                            Text(tag)
-                                .font(.caption)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(Color.gray.opacity(0.2))
-                                .cornerRadius(8)
-
-                            Button(action: {
-                                tagInputTags.removeAll { $0 == tag }
-                            }) {
-                                Image(systemName: "xmark.circle.fill")
-                                    .font(.caption)
-                                    .foregroundColor(.gray)
-                            }
-                        }
-                        .padding(4)
-                        .background(Color.white)
-                        .cornerRadius(10)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                        )
-                        .fixedSize()
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 40)
-                }
+                TagInputView(tagInput: $tagInput, tagInputTags: $tagInputTags)
 
                 if let selectedImage {
                     Image(uiImage: selectedImage)
@@ -139,6 +81,8 @@ struct AddItemSheet: View {
 
                             if let folder = selectedFolder {
                                 folder.items.append(newItem)
+                                print("Total items collected: \(BadgeManager.shared.totalItemsCollected + 1)")
+                                BadgeManager.shared.incrementBadgeItems()
                                 resetAndDismiss()
                             } else if !disableSuggestedFolders {
                                 let lowercasedItemName = newItemName.lowercased()
@@ -152,10 +96,14 @@ struct AddItemSheet: View {
                                     }
                                 } else {
                                     modelContext.insert(newItem)
+                                    print("Total items collected: \(BadgeManager.shared.totalItemsCollected + 1)")
+                                    BadgeManager.shared.incrementBadgeItems()
                                     resetAndDismiss()
                                 }
                             } else {
                                 modelContext.insert(newItem)
+                                print("Total items collected: \(BadgeManager.shared.totalItemsCollected + 1)")
+                                BadgeManager.shared.incrementBadgeItems()
                                 resetAndDismiss()
                             }
                         }
@@ -177,9 +125,13 @@ struct AddItemSheet: View {
                     if let folder = suggestedFolder {
                         let newItem = Item(timestamp: Date(), name: newItemName, imageData: imageData, tags: tagsArray)
                         folder.items.append(newItem)
+                        print("Total items collected: \(BadgeManager.shared.totalItemsCollected + 1)")
+                        BadgeManager.shared.incrementBadgeItems()
                     } else {
                         let newItem = Item(timestamp: Date(), name: newItemName, imageData: imageData, tags: tagsArray)
                         modelContext.insert(newItem)
+                        print("Total items collected: \(BadgeManager.shared.totalItemsCollected + 1)")
+                        BadgeManager.shared.incrementBadgeItems()
                     }
                     resetAndDismiss()
                 }
@@ -188,6 +140,8 @@ struct AddItemSheet: View {
                     let tagsArray = tagInputTags
                     let newItem = Item(timestamp: Date(), name: newItemName, imageData: imageData, tags: tagsArray)
                     modelContext.insert(newItem)
+                    print("Total items collected: \(BadgeManager.shared.totalItemsCollected + 1)")
+                    BadgeManager.shared.incrementBadgeItems()
                     resetAndDismiss()
                 }
             } message: {
