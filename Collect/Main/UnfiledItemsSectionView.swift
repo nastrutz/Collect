@@ -18,7 +18,7 @@ struct UnfiledItemsSectionView: View {
     @AppStorage("themeBlue") private var themeBlue: Double = 1.0
 
     var body: some View {
-        Section(header: Text("Unfiled items")) {
+        Section(header: Text("Unfiled items"), content: {
             switch displayMode {
             case .nameOnly:
                 ForEach(items) { item in
@@ -78,8 +78,8 @@ struct UnfiledItemsSectionView: View {
                 }
 
             case .imageOnly:
-                ItemGridView(items: items, modelContext: modelContext, folders: folders)
+                ItemGridView(items: items)
             }
-        }
+        })
     }
 }
