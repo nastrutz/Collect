@@ -15,6 +15,8 @@ struct SettingsView: View {
     @AppStorage("themeRed") var themeRed: Double = 0.0
     @AppStorage("themeGreen") var themeGreen: Double = 0.478
     @AppStorage("themeBlue") var themeBlue: Double = 1.0
+    @AppStorage("hideBadgesManually") var hideBadgesManually: Bool = false
+    @AppStorage("hideBadgeList") var hideBadgeList: Bool = false
 
     @State private var tempDisplayMode: DisplayMode
     @State private var tempEnableFolderLocking: Bool
@@ -22,6 +24,8 @@ struct SettingsView: View {
     @State private var tempThemeRed: Double
     @State private var tempThemeGreen: Double
     @State private var tempThemeBlue: Double
+    @State private var tempHideBadgesManually: Bool
+    @State private var tempHideBadgeList: Bool
 
     init() {
         let storedDisplayMode = UserDefaults.standard.string(forKey: "defaultDisplayMode")
@@ -31,6 +35,8 @@ struct SettingsView: View {
         _tempThemeRed = State(initialValue: UserDefaults.standard.double(forKey: "themeRed"))
         _tempThemeGreen = State(initialValue: UserDefaults.standard.double(forKey: "themeGreen"))
         _tempThemeBlue = State(initialValue: UserDefaults.standard.double(forKey: "themeBlue"))
+        _tempHideBadgesManually = State(initialValue: UserDefaults.standard.bool(forKey: "hideBadgesManually"))
+        _tempHideBadgeList = State(initialValue: UserDefaults.standard.bool(forKey: "hideBadgeList"))
     }
 
     var body: some View {
@@ -50,6 +56,18 @@ struct SettingsView: View {
                             : Color(red: tempThemeRed, green: tempThemeGreen, blue: tempThemeBlue)
                         )
                     Toggle("Disable Suggested Folders", isOn: $tempDisableSuggestedFolders)
+                        .tint(
+                            (tempThemeRed == 0.0 && tempThemeGreen == 0.478 && tempThemeBlue == 1.0)
+                            ? .green
+                            : Color(red: tempThemeRed, green: tempThemeGreen, blue: tempThemeBlue)
+                        )
+                    Toggle("Hide Highest Badge", isOn: $tempHideBadgesManually)
+                        .tint(
+                            (tempThemeRed == 0.0 && tempThemeGreen == 0.478 && tempThemeBlue == 1.0)
+                            ? .green
+                            : Color(red: tempThemeRed, green: tempThemeGreen, blue: tempThemeBlue)
+                        )
+                    Toggle("Hide Badge List", isOn: $tempHideBadgeList)
                         .tint(
                             (tempThemeRed == 0.0 && tempThemeGreen == 0.478 && tempThemeBlue == 1.0)
                             ? .green
@@ -119,6 +137,8 @@ struct SettingsView: View {
                         tempThemeRed = 0.0
                         tempThemeGreen = 0.478
                         tempThemeBlue = 1.0
+                        tempHideBadgesManually = false
+                        tempHideBadgeList = false
                     } label: {
                         HStack {
                             Spacer()
@@ -174,6 +194,8 @@ struct SettingsView: View {
                         UserDefaults.standard.set(tempThemeRed, forKey: "themeRed")
                         UserDefaults.standard.set(tempThemeGreen, forKey: "themeGreen")
                         UserDefaults.standard.set(tempThemeBlue, forKey: "themeBlue")
+                        UserDefaults.standard.set(tempHideBadgesManually, forKey: "hideBadgesManually")
+                        UserDefaults.standard.set(tempHideBadgeList, forKey: "hideBadgeList")
                         dismiss()
                     }
                     .foregroundColor(Color(red: tempThemeRed, green: tempThemeGreen, blue: tempThemeBlue))

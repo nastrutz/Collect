@@ -41,6 +41,8 @@ struct ContentView: View {
     @AppStorage("themeRed") private var themeRed: Double = 0.0
     @AppStorage("themeGreen") private var themeGreen: Double = 0.478
     @AppStorage("themeBlue") private var themeBlue: Double = 1.0
+    @AppStorage("hideBadgesManually") private var hideBadgesManually = false
+    @AppStorage("hideBadgeList") private var hideBadgeList = false
     @State private var searchText = ""
     @StateObject private var badgeManager = BadgeManager()
 
@@ -71,7 +73,7 @@ struct ContentView: View {
         NavigationStack(path: $path) {
             List {
                 Group {
-                    if !badgeManager.hideBadges {
+                    if !badgeManager.hideBadges && !hideBadgeList {
                         Section(header: Text("Badges")) {
                             BadgeLabel(title: "5 Items", color: .gray, unlocked: badgeManager.badge5Unlocked)
                             BadgeLabel(title: "10 Items", color: .yellow, unlocked: badgeManager.badge10Unlocked)
@@ -165,19 +167,7 @@ struct ContentView: View {
             .navigationTitle("Collect")
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Picker("View", selection: $displayMode) {
-                        ForEach(DisplayMode.allCases) { mode in
-                            Image(systemName: {
-                                switch mode {
-                                case .nameOnly: return "line.3.horizontal"
-                                case .nameAndImage: return "list.bullet"
-                                case .imageOnly: return "square.grid.2x2"
-                                }
-                            }()).tag(mode)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                    .tint(currentThemeColor)
+                    ToolbarControlsView(displayMode: $displayMode, currentThemeColor: currentThemeColor, badgeManager: badgeManager, hideBadgesManually: hideBadgesManually)
                 }
                 ToolbarItem {
                     Button {
