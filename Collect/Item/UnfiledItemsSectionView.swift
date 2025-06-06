@@ -16,7 +16,7 @@ struct UnfiledItemsSectionView: View {
     @AppStorage("themeRed") private var themeRed: Double = 0.0
     @AppStorage("themeGreen") private var themeGreen: Double = 0.478
     @AppStorage("themeBlue") private var themeBlue: Double = 1.0
-
+    
     var body: some View {
         Section(header: Text("Unfiled items"), content: {
             switch displayMode {
@@ -31,7 +31,7 @@ struct UnfiledItemsSectionView: View {
                         } label: {
                             Label("Delete", systemImage: "trash")
                         }
-
+                        
                         Menu {
                             ForEach(folders) { folder in
                                 Button(folder.name) {
@@ -43,7 +43,8 @@ struct UnfiledItemsSectionView: View {
                         }
                     }
                 }
-
+                .onDelete(perform: deleteItems)
+                
             case .nameAndImage:
                 ForEach(items) { item in
                     NavigationLink(value: item) {
@@ -64,7 +65,7 @@ struct UnfiledItemsSectionView: View {
                         } label: {
                             Label("Delete", systemImage: "trash")
                         }
-
+                        
                         Menu {
                             ForEach(folders) { folder in
                                 Button(folder.name) {
@@ -76,10 +77,18 @@ struct UnfiledItemsSectionView: View {
                         }
                     }
                 }
-
+                .onDelete(perform: deleteItems)
+                
             case .imageOnly:
                 ItemGridView(items: items)
             }
         })
+    }
+    
+    private func deleteItems(at offsets: IndexSet) {
+        for index in offsets {
+            let item = items[index]
+            modelContext.delete(item)
+        }
     }
 }
