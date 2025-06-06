@@ -81,7 +81,6 @@ struct AddItemSheet: View {
 
                             if let folder = selectedFolder {
                                 folder.items.append(newItem)
-                                print("Total items collected: \(BadgeManager.shared.totalItemsCollected + 1)")
                                 BadgeManager.shared.incrementBadgeItems()
                                 resetAndDismiss()
                             } else if !disableSuggestedFolders {
@@ -96,13 +95,11 @@ struct AddItemSheet: View {
                                     }
                                 } else {
                                     modelContext.insert(newItem)
-                                    print("Total items collected: \(BadgeManager.shared.totalItemsCollected + 1)")
                                     BadgeManager.shared.incrementBadgeItems()
                                     resetAndDismiss()
                                 }
                             } else {
                                 modelContext.insert(newItem)
-                                print("Total items collected: \(BadgeManager.shared.totalItemsCollected + 1)")
                                 BadgeManager.shared.incrementBadgeItems()
                                 resetAndDismiss()
                             }
@@ -125,12 +122,10 @@ struct AddItemSheet: View {
                     if let folder = suggestedFolder {
                         let newItem = Item(timestamp: Date(), name: newItemName, imageData: imageData, tags: tagsArray)
                         folder.items.append(newItem)
-                        print("Total items collected: \(BadgeManager.shared.totalItemsCollected + 1)")
                         BadgeManager.shared.incrementBadgeItems()
                     } else {
                         let newItem = Item(timestamp: Date(), name: newItemName, imageData: imageData, tags: tagsArray)
                         modelContext.insert(newItem)
-                        print("Total items collected: \(BadgeManager.shared.totalItemsCollected + 1)")
                         BadgeManager.shared.incrementBadgeItems()
                     }
                     resetAndDismiss()
@@ -140,7 +135,6 @@ struct AddItemSheet: View {
                     let tagsArray = tagInputTags
                     let newItem = Item(timestamp: Date(), name: newItemName, imageData: imageData, tags: tagsArray)
                     modelContext.insert(newItem)
-                    print("Total items collected: \(BadgeManager.shared.totalItemsCollected + 1)")
                     BadgeManager.shared.incrementBadgeItems()
                     resetAndDismiss()
                 }

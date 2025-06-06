@@ -20,7 +20,6 @@ class BadgeManager: ObservableObject {
     @AppStorage("badge10Unlocked") var badge10Unlocked: Bool = false
     @AppStorage("badge20Unlocked") var badge20Unlocked: Bool = false
     @AppStorage("totalItemsCollected") var totalItemsCollected: Int = 0
-    @AppStorage("hideBadges") var hideBadges: Bool = false
 
     func incrementBadgeItems() {
         totalItemsCollected += 1

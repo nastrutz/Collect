@@ -10,8 +10,9 @@ import SwiftUI
 struct ToolbarControlsView: View {
     @Binding var displayMode: DisplayMode
     let currentThemeColor: Color
-    let badgeManager: BadgeManager
+    @ObservedObject var badgeManager: BadgeManager
     let hideBadgesManually: Bool
+    @State private var showingBadgeInfo = false
 
     var body: some View {
         HStack {
@@ -29,7 +30,7 @@ struct ToolbarControlsView: View {
             .pickerStyle(.segmented)
             .tint(currentThemeColor)
 
-            if !badgeManager.hideBadges && !hideBadgesManually {
+            if !hideBadgesManually {
                 if badgeManager.badge20Unlocked {
                     badgeIcon(.purple)
                 } else if badgeManager.badge10Unlocked {
@@ -39,14 +40,43 @@ struct ToolbarControlsView: View {
                 }
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: Notification.Name("ResetBadgesNotification"))) { _ in
+            showingBadgeInfo = false
+        }
     }
 
     private func badgeIcon(_ color: Color) -> some View {
-        ZStack {
-            BadgeLabel(title: "5 Items", color: color, unlocked: true)
-            Image(systemName: "seal")
-                .foregroundColor(.black)
-                .font(.system(size: 22, weight: .light))
+        Button {
+            showingBadgeInfo = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                showingBadgeInfo = false
+            }
+        } label: {
+            ZStack {
+                BadgeLabel(title: "", color: color, unlocked: true)
+                    .font(.system(size: 15))
+                Image(systemName: "seal")
+                    .foregroundColor(.black)
+                    .font(.system(size: 17, weight: .light))
+            }
         }
+        .buttonStyle(.plain)
+        .overlay(
+            Group {
+                if showingBadgeInfo {
+                    Text("Total: \(badgeManager.totalItemsCollected)")
+                        .font(.caption)
+                        .padding(8)
+                        .background(Color.black.opacity(0.75))
+                        .foregroundColor(.white)
+                        .cornerRadius(6)
+                        .fixedSize()
+                        .offset(y: 40)
+                        .transition(.opacity)
+                }
+            },
+            alignment: .top
+        )
+        .animation(.easeInOut(duration: 0.2), value: showingBadgeInfo)
     }
 }

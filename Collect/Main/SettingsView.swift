@@ -172,7 +172,10 @@ struct SettingsView: View {
                         UserDefaults.standard.set(false, forKey: "badge20Unlocked")
                         UserDefaults.standard.set(false, forKey: "hideBadges")
                         UserDefaults.standard.set(0, forKey: "totalItemsCollected")
+                        UserDefaults.standard.set(false, forKey: "hideBadgeList")
                         NotificationCenter.default.post(name: Notification.Name("ResetBadgesNotification"), object: nil)
+                        tempHideBadgeList = false
+                        tempHideBadgesManually = false
                     } label: {
                         HStack {
                             Spacer()

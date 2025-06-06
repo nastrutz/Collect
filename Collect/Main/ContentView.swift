@@ -73,7 +73,7 @@ struct ContentView: View {
         NavigationStack(path: $path) {
             List {
                 Group {
-                    if !badgeManager.hideBadges && !hideBadgeList {
+                    if !hideBadgeList {
                         Section(header: Text("Badges")) {
                             BadgeLabel(title: "5 Items", color: .gray, unlocked: badgeManager.badge5Unlocked)
                             BadgeLabel(title: "10 Items", color: .yellow, unlocked: badgeManager.badge10Unlocked)
