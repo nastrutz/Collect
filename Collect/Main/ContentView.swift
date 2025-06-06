@@ -81,72 +81,12 @@ struct ContentView: View {
                         }
                     }
                 }
-                Section(header: Text("Unfiled items")) {
-                    switch displayMode {
-                    case .nameOnly:
-                        ForEach(filteredItems) { item in
-                            NavigationLink(value: item) {
-                                Text(item.name)
-                            }
-                            .contextMenu {
-                                Button(role: .destructive) {
-                                    modelContext.delete(item)
-                                } label: {
-                                    Label("Delete", systemImage: "trash")
-                                }
-
-                                Menu {
-                                    ForEach(folders) { folder in
-                                        Button(folder.name) {
-                                            item.folder = folder
-                                            modelContext.insert(item)
-                                        }
-                                    }
-                                } label: {
-                                    Label("Change Folder", systemImage: "folder")
-                                }
-                            }
-                        }
-                        .onDelete(perform: deleteItems)
-
-                    case .nameAndImage:
-                        ForEach(filteredItems) { item in
-                            NavigationLink(value: item) {
-                                HStack {
-                                    if let imageData = item.imageData, let uiImage = UIImage(data: imageData) {
-                                        Image(uiImage: uiImage)
-                                            .resizable()
-                                            .frame(width: 50, height: 50)
-                                            .clipShape(RoundedRectangle(cornerRadius: 8))
-                                    }
-                                    Text(item.name)
-                                        .font(.body)
-                                }
-                            }
-                            .contextMenu {
-                                Menu {
-                                    ForEach(folders) { folder in
-                                        Button(folder.name) {
-                                            item.folder = folder
-                                            modelContext.insert(item)
-                                        }
-                                    }
-                                } label: {
-                                    Label("Change Folder", systemImage: "folder")
-                                }
-                                Button(role: .destructive) {
-                                    modelContext.delete(item)
-                                } label: {
-                                    Label("Delete", systemImage: "trash")
-                                }
-                            }
-                        }
-                        .onDelete(perform: deleteItems)
-
-                    case .imageOnly:
-                        ItemGridView(items: filteredItems)
-                    }
-                }
+                UnfiledItemsSectionView(
+                    items: filteredItems,
+                    folders: filteredFolders,
+                    displayMode: displayMode,
+                    modelContext: modelContext
+                )
 
                 FolderSectionView(
                     folders: filteredFolders,
@@ -180,6 +120,8 @@ struct ContentView: View {
                         authenticateForSettings()
                     } label: {
                         Image(systemName: "gear")
+                            .rotationEffect(showingSettings ? Angle(degrees: 90) : Angle(degrees: 0))
+                            .animation(.easeInOut(duration: 0.3), value: showingSettings)
                     }
                     .foregroundColor(currentThemeColor)
                 }

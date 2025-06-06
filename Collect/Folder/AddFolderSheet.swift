@@ -30,6 +30,7 @@ struct AddFolderSheet: View {
                     .bold()
 
                 Button {
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                     folderImagePickerPresented = true
                 } label: {
                     Text("Select Image")

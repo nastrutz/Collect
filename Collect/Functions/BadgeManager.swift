@@ -34,7 +34,7 @@ class BadgeManager: ObservableObject {
             badge20Unlocked = true
         }
         if totalItemsCollected >= 21 {
-            hideBadges = true
+            UserDefaults.standard.set(true, forKey: "hideBadgeList")
         }
     }
 

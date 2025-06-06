@@ -56,7 +56,7 @@ struct ToolbarControlsView: View {
                 BadgeLabel(title: "", color: color, unlocked: true)
                     .font(.system(size: 15))
                 Image(systemName: "seal")
-                    .foregroundColor(.black)
+                    .foregroundColor(.primary)
                     .font(.system(size: 17, weight: .light))
             }
         }
@@ -67,8 +67,8 @@ struct ToolbarControlsView: View {
                     Text("Total: \(badgeManager.totalItemsCollected)")
                         .font(.caption)
                         .padding(8)
-                        .background(Color.black.opacity(0.75))
-                        .foregroundColor(.white)
+                        .background(Color.primary.opacity(0.75))
+                        .foregroundColor(Color(UIColor.systemBackground))
                         .cornerRadius(6)
                         .fixedSize()
                         .offset(y: 40)
